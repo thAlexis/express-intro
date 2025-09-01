@@ -9,29 +9,79 @@ import express from "express";
 
 const app = express();
 
-const m1 = (req, res, next) => {
-  console.log("Middleware : m1");
-  next();
-};
+app.get("/", (req, res) => {
+  console.log("GET : /");
+  res.end("GET : /");
+});
 
-const m2 = (req, res, next) => {
-  console.log("Middleware : m2");
-  next();
-};
+// app.get(["/home", "/accueil"], (req, res) => {
+//   console.log(`GET : ${req.url}`);
+//   res.end(`GET : ${req.url}`);
+// });
 
-const m3 = (req, res) => {
-  console.log("Middleware : m3");
-};
+app
+  .route(["/home", "/accueil"])
+  .get((req, res) => {
+    console.log(`GET : ${req.url}`);
+    res.sendFile(import.meta.dirname + "/index.html");
+  })
+  .post((req, res) => {
+    console.log(`POST : ${req.url}`);
+    res.end(`POST : ${req.url}`);
+  });
 
-app.get(
-  "/",
-  (req, res, next) => {
-    console.log("GET : /");
-    res.end("GET : /");
-    next();
+app.all("/personne", (req, res) => {
+  console.log(`${req.method} : ${req.url}`);
+  res.end(`${req.method} : ${req.url}`);
+});
+
+app.get("/adresse/:ville/:cp", (req, res) => {
+  console.log(`${req.method} : ${res.url}`);
+  res.end(`Ici c'est ${req.params["ville"]} - ${req.params.cp}`);
+});
+
+app.get("/adresse", (req, res) => {
+  console.log(`${req.method} : ${res.url}`);
+  res.end(`Ici c'est ${req.query["ville"]} - ${req.query.cp}`);
+});
+
+app.get("/calcul/:op", (req, res) => {
+  let result = 0;
+  const a = Number(req.query.a);
+  const b = Number(req.query.b);
+
+  switch (req.params.op) {
+    case "+":
+      result = a + b;
+      break;
+    case "-":
+      result = a - b;
+      break;
+    case "/":
+      result = a / b;
+      break;
+    case "*":
+      result = a * b;
+      break;
   }
-  // [m2, m1]
-);
+
+  res.end(`Le resultat de ${a} ${req.params.op} ${b} est ${result}`);
+});
+
+// app.post(["/home", "/accueil"], (req, res) => {
+//   console.log(`POST : ${req.url}`);
+//   res.end(`POST : ${req.url}`);
+// });
+
+// middle pour les routes restantes, a placer en dernier
+app.get("/*splat", (req, res) => {
+  console.log("GET : la route demandée n'existe pas");
+  res.status(404).type("json").json({
+    Erreur: "La page demandée n'existe pas",
+  });
+  // res.sendStatus(404);
+  // res.status(404).end("GET : La route demandée n'existe pas");
+});
 
 // app.use(m1);
 
